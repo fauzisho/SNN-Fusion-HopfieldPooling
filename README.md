@@ -10,10 +10,11 @@ Correspondence: `<fauzisholichin@gmail.com>`
 ---
 
 <p align="center">
-  <img src="images/sbj_18_events_dvs240_grid_normal.gif" width="45%" alt="Raw DVS events" />
-  <img src="images/sbj_18_clips_dvs240_grid_normal.gif" width="45%" alt="Pooled event clips" />
+  <img src="images/sbj_18_clips_dvs240_grid_normal.gif" width="45%" alt="RGB clips from the WEAR dataset" />
+  <img src="images/sbj_18_events_dvs240_grid_normal.gif" width="45%" alt="Event streams converted with v2e" />
 </p>
-<p align="center"><em>Left: raw event stream. Right: &lt;what the second view shows&gt;.</em></p>
+<p align="center"><em>Left: RGB clips from the <a href="https://mariusbock.github.io/wear/">WEAR</a> dataset.
+Right: the corresponding event streams, converted with <a href="https://github.com/SensorsINI/v2e">v2e</a>.</em></p>
 
 ## Abstract
 
