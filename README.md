@@ -1,4 +1,4 @@
-# Spiking Hopfield Pooling
+# Spiking Neural Network with Hopfield Pooling Late Fusion
 
 F. Sholichin<sup>1</sup>, M. Neumeier<sup>2</sup>, S. Gröttrup<sup>1</sup>, T. Schön<sup>1</sup>
 
