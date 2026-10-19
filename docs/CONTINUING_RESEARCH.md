@@ -35,9 +35,6 @@ From the paper's discussion and the thesis:
 * **Neuromorphic hardware.** Energies are operation-count proxies
   (E_MAC 4.6 pJ, E_SOP 10 pJ, E_neuron 5 pJ). Port the encoders to Loihi 2 / Lava or
   SpiNNaker 2 and measure. The EGRU and SE-AdLIF need custom neuron models there.
-* **A spiking fusion head.** The Hopfield heads are float attention on a host. The thesis
-  explored spiking Hopfield pooling (not included here); the fusion head is 0.11 % of the
-  pipeline energy, so the motivation is deployability rather than energy.
 * **A cheaper event encoder.** The event SNN is 99 % of the pipeline cost, and the
   EGRU-512 head is two thirds of it (Table II). Smaller recurrent heads, lower input
   resolution or event-driven convolution are the main levers.

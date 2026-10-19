@@ -176,8 +176,8 @@ Key findings:
   vote, double Hopfield pooling reaches 83.07 % F1 (+7.24 over the IMU SNN) and
   88.40 % accuracy, within 1.95 accuracy points of the oracle, although the event
   stream alone is 20.7 F1 points weaker than the inertial one.
-- **The vote reorders the spiking heads.** With the 10 s vote the three spiking heads
-  lie within 1.1 (aligned) and 1.5 (native) points. The vote adds 7.35 points to
+- **The vote reorders the fusion heads on the spiking front end.** With the 10 s vote
+  the three heads lie within 1.1 (aligned) and 1.5 (native) points. The vote adds 7.35 points to
   score-pick but only 0.95 to double Hopfield pooling: both supply about 10 s of
   temporal context, so the gains do not add up. After the same five-window vote,
   average mAP (tIoU 0.3–0.7) on aligned windows is 69.54 % for double pooling against
@@ -309,8 +309,8 @@ docs/               REPRODUCE.md, CONTINUING_RESEARCH.md
 ## Continuing this work
 
 [docs/CONTINUING_RESEARCH.md](docs/CONTINUING_RESEARCH.md) explains how the stages fit
-together, how to add a new head or encoder, and the open directions: physical DVS, neuromorphic hardware, a spiking
-fusion head, a cheaper event encoder and better gating.
+together, how to add a new head or encoder, and the open directions: physical DVS, neuromorphic hardware, a cheaper
+event encoder and better gating.
 
 ## Citation
 

@@ -58,10 +58,6 @@ def parse_args() -> argparse.Namespace:
         help="H5 event folder tier: sbj_N_events_dvs240 or sbj_N_events_dvs128",
     )
     parser.add_argument("--feat-neurons", type=int, default=512)
-    parser.add_argument("--hopfield-quantity", type=int, default=1)
-    parser.add_argument("--hopfield-scaling", type=float, default=None)
-    parser.add_argument("--hopfield-update-steps", type=int, default=0)
-    parser.add_argument("--hopfield-normalize", action="store_true")
     parser.add_argument("--val-ratio", type=float, default=0.10)
     parser.add_argument(
         "--val-on-held-out",
@@ -166,10 +162,6 @@ def main() -> None:
             channels=args.channels,
             dropout=args.dropout,
             feat_neurons=args.feat_neurons,
-            hopfield_quantity=args.hopfield_quantity,
-            hopfield_scaling=args.hopfield_scaling,
-            hopfield_update_steps=args.hopfield_update_steps,
-            hopfield_normalize=args.hopfield_normalize,
         ),
         train=TrainConfig(
             batch_size=args.batch_size,

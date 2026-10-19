@@ -8,15 +8,7 @@ Outputs per-run CSV + JSON summary with GPU / Loihi energy estimates (configurab
 See REPORT.md §5 for methodology and references.
 
 Usage:
-  python3 profile_compute_spikes.py \\
-    --out-root output_inertial_all_paper_2s_cluster --model-type egru
-
-  python3 profile_compute_spikes.py \\
-    --out-root output_inertial_hopfield_2s_cluster --model-type hopfield
-
-  # Quick: 6 runs (seed 1, all test splits)
-  python3 profile_compute_spikes.py --out-root output_inertial_hopfield_2s_cluster \\
-    --model-type hopfield --sample-runs 6 --measure-gpu-power
+  python3 imu_snn/profile_compute_spikes.py --out-root "$NWEAR_OUTPUT/imu_snn/loso54" --model-type egru
 """
 from __future__ import annotations
 
@@ -33,12 +25,8 @@ import nwear_paths as P
 import numpy as np
 import torch
 
-from eval_precision_recall_from_checkpoints import load_val_tensors, parse_summary_hopfield
+from eval_precision_recall_from_checkpoints import load_val_tensors
 from pipeline_inertial import EGRUClassifier
-try:  # EGRU + Hopfield readout was a thesis variant; not shipped in this release
-    from pipeline_inertial_hopfield import EGRUHopfieldClassifier
-except ImportError:
-    EGRUHopfieldClassifier = None
 
 
 # Default energy constants (pJ); see REPORT.md §5.2 — cite Horowitz (2014), Davies et al. (2018, 2021).
@@ -52,35 +40,16 @@ DEFAULT_E_SOP_PJ_HIGH = 23.0
 class MacBreakdown:
     egru_macs: int
     head_macs: int
-    hopfield_macs: int
     total_macs: int
 
     @classmethod
-    def from_dims(
-        cls,
-        T: int,
-        F: int,
-        H: int,
-        C: int,
-        *,
-        hopfield_quantity: int = 0,
-        hopfield_update_steps: int = 0,
-    ) -> MacBreakdown:
+    def from_dims(cls, T: int, F: int, H: int, C: int) -> MacBreakdown:
         """Analytical MAC count per window (batch size 1)."""
         # EGRU: 3 gates; input proj F→3H + recurrent H→3H per timestep
         egru = int(6 * T * H * (F + H))
-        head = 0
-        hopfield = 0
-        if hopfield_quantity > 0:
-            # HopfieldPooling (single-pass, qty=1): ~2*T*H^2 association + H*C head
-            steps = max(1, hopfield_update_steps + 1)
-            hopfield = int(steps * hopfield_quantity * (2 * T * H * H + H * H))
-            head = int(hopfield_quantity * H * C)
-        else:
-            # EGRU-only: linear head each timestep + mean pool (negligible)
-            head = int(T * H * C)
-        total = egru + head + hopfield
-        return cls(egru_macs=egru, head_macs=head, hopfield_macs=hopfield, total_macs=total)
+        # linear head each timestep + mean pool (negligible)
+        head = int(T * H * C)
+        return cls(egru_macs=egru, head_macs=head, total_macs=egru + head)
 
 
 def estimate_sops(T: int, F: int, H: int, spike_rate: float) -> int:
@@ -130,7 +99,6 @@ def measure_inference_ms(
     model: torch.nn.Module,
     x_val: torch.Tensor,
     device: torch.device,
-    model_type: str,
     n_warmup: int = 5,
     n_iter: int = 50,
 ) -> float:
@@ -138,42 +106,19 @@ def measure_inference_ms(
     model.eval()
     x = x_val[:1].to(device)
     for _ in range(n_warmup):
-        if model_type == "hopfield":
-            model(x)
-        else:
-            model(x)
+        model(x)
     if device.type == "cuda":
         torch.cuda.synchronize()
     t0 = time.perf_counter()
     for _ in range(n_iter):
-        if model_type == "hopfield":
-            model(x)
-        else:
-            model(x)
+        model(x)
     if device.type == "cuda":
         torch.cuda.synchronize()
     elapsed_ms = (time.perf_counter() - t0) * 1000.0 / n_iter
     return elapsed_ms
 
 
-def build_model(
-    model_type: str,
-    in_features: int,
-    num_classes: int,
-    hidden: int,
-    hopfield_quantity: int,
-    hopfield_scaling: float | None,
-    hopfield_update_steps: int,
-) -> torch.nn.Module:
-    if model_type == "hopfield":
-        return EGRUHopfieldClassifier(
-            input_size=in_features,
-            hidden_size=hidden,
-            num_classes=num_classes,
-            hopfield_quantity=hopfield_quantity,
-            hopfield_scaling=hopfield_scaling,
-            hopfield_update_steps=hopfield_update_steps,
-        )
+def build_model(in_features: int, num_classes: int, hidden: int) -> torch.nn.Module:
     return EGRUClassifier(
         input_size=in_features,
         hidden_size=hidden,
@@ -227,21 +172,9 @@ def profile_one_run(
     F = meta["in_features"]
     C = meta["num_classes"]
     hidden = 128
-    hq, hscale, hsteps = 0, None, 0
-    if model_type == "hopfield":
-        hp = parse_summary_hopfield(run_dir / "summary.txt")
-        hidden = int(hp["hidden"])
-        hq = int(hp["hopfield_quantity"])
-        hsteps = int(hp["hopfield_update_steps"])
-        hscale = hp["hopfield_scaling"]
+    macs = MacBreakdown.from_dims(T, F, hidden, C)
 
-    macs = MacBreakdown.from_dims(
-        T, F, hidden, C,
-        hopfield_quantity=hq,
-        hopfield_update_steps=hsteps,
-    )
-
-    model = build_model(model_type, F, C, hidden, hq, hscale, hsteps)
+    model = build_model(F, C, hidden)
     try:
         state = torch.load(ckpt, map_location=device, weights_only=True)
     except TypeError:
@@ -251,7 +184,7 @@ def profile_one_run(
 
     spike_rate = measure_spike_rate_egru(model, x_val, device)
     sops = estimate_sops(T, F, hidden, spike_rate)
-    latency_ms = measure_inference_ms(model, x_val, device, model_type)
+    latency_ms = measure_inference_ms(model, x_val, device)
 
     n_val = len(x_val)
     gpu_power_w: float | None = None
@@ -273,7 +206,6 @@ def profile_one_run(
         "MACs_total": macs.total_macs,
         "MACs_egru": macs.egru_macs,
         "MACs_head": macs.head_macs,
-        "MACs_hopfield": macs.hopfield_macs,
         "SOPs_est": sops,
         "Latency_ms": round(latency_ms, 3),
         "Val_windows": n_val,
@@ -324,7 +256,7 @@ def summarize(rows: list[dict], e_mac_pj: float, e_sop_nom: float) -> dict:
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out-root", type=Path, required=True)
-    p.add_argument("--model-type", choices=("egru", "hopfield"), required=True)
+    p.add_argument("--model-type", choices=("egru",), default="egru")
     p.add_argument("--feat-dir", type=Path,
                    default=P.IMU_FEAT_DIR)
     p.add_argument("--ann-dir", type=Path,
@@ -375,7 +307,7 @@ def main() -> None:
 
     fields = [
         "Seed", "Run", "T_imu", "F", "H", "C",
-        "SpikeRate", "MACs_total", "MACs_egru", "MACs_head", "MACs_hopfield",
+        "SpikeRate", "MACs_total", "MACs_egru", "MACs_head",
         "SOPs_est", "Latency_ms", "Val_windows",
         "Est_GPU_mJ_MAC", "Est_Loihi_mJ_SOP_low", "Est_Loihi_mJ_SOP_nom", "Est_Loihi_mJ_SOP_high",
         "GPU_power_W", "GPU_mJ_measured_forward",

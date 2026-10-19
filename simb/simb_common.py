@@ -1,8 +1,4 @@
-"""Shared SIM B helpers: aligned-feature cache I/O, majority vote, macro P/R/F1, mAP.
-
-Split out of the thesis script ``eval_spiking_hopfield_map.py`` so that the float
-(paper) pipeline no longer imports the spiking Hopfield heads.
-"""
+"""Shared SIM B helpers: aligned-feature cache I/O, majority vote, macro P/R/F1, mAP."""
 
 from __future__ import annotations
 

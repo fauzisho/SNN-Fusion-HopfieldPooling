@@ -103,7 +103,7 @@ def load_dvs_checkpoint(ckpt_path: Path, device: torch.device):
     ckpt = torch.load(ckpt_path, map_location=device)
     raw = ckpt["config"]
     data = DataConfig(**raw["data"])
-    model_cfg = ModelConfig(**raw["model"])
+    model_cfg = ModelConfig.from_dict(raw["model"])
     train_cfg = TrainConfig(**raw["train"])
     model = AllConvAdLIFEGRU_DVS128(
         channels=model_cfg.channels,

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 import nwear_paths as P
 
@@ -40,15 +40,16 @@ class DataConfig:
 
 @dataclass
 class ModelConfig:
-    model_name: str = "aico"  # aico | aico_egru | aico_egru_hopfield | allconv_egru_dvs128 | allconv_adlif_egru_dvs128 | allconv_egru_hopfield_dvs128
-    channels: int = 6
-    dropout: float = 0.1
+    model_name: str = "allconv_adlif_egru_dvs128"
+    channels: int = 8
+    dropout: float = 0.05
     num_classes: int = 18
     feat_neurons: int = 512
-    hopfield_quantity: int = 1
-    hopfield_scaling: float | None = None
-    hopfield_update_steps: int = 0
-    hopfield_normalize: bool = False
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> "ModelConfig":
+        """Rebuild from a checkpoint's saved config, ignoring keys of older model variants."""
+        return cls(**{f.name: raw[f.name] for f in fields(cls) if f.name in raw})
 
 
 @dataclass

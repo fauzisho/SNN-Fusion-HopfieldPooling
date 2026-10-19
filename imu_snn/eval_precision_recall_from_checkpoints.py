@@ -7,13 +7,8 @@ per-channel normalization from train split, 10 s majority vote), runs a forward
 pass, and writes per-run metrics plus an aggregate CSV.
 
 Usage:
-  python3 eval_precision_recall_from_checkpoints.py \\
-    --out-root output_inertial_hopfield_2s_cluster \\
-    --model-type hopfield
-
-  python3 eval_precision_recall_from_checkpoints.py \\
-    --out-root output_inertial_all_paper_2s_cluster \\
-    --model-type egru
+  python3 imu_snn/eval_precision_recall_from_checkpoints.py \\
+    --out-root "$NWEAR_OUTPUT/imu_snn/loso54" --model-type egru
 """
 from __future__ import annotations
 
@@ -39,10 +34,6 @@ from pipeline_inertial import (
     majority_vote_filter,
     normalize_per_channel,
 )
-try:  # EGRU + Hopfield readout was a thesis variant; not shipped in this release
-    from pipeline_inertial_hopfield import EGRUHopfieldClassifier, classify as classify_hopfield
-except ImportError:
-    EGRUHopfieldClassifier = classify_hopfield = None
 
 
 def macro_precision_recall(
@@ -65,32 +56,6 @@ def macro_precision_recall(
         else:
             f1s.append(2.0 * p * r / (p + r))
     return float(np.mean(precs)), float(np.mean(recs)), float(np.mean(f1s))
-
-
-def parse_summary_hopfield(path: Path) -> dict[str, int | float | None]:
-    text = path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
-    out: dict[str, int | float | None] = {
-        "hopfield_quantity": 1,
-        "hopfield_update_steps": 0,
-        "hopfield_scaling": None,
-        "hidden": 128,
-    }
-    m = re.search(r"Hidden:\s*(\d+)", text)
-    if m:
-        out["hidden"] = int(m.group(1))
-    m = re.search(r"quantity=(\d+)", text)
-    if m:
-        out["hopfield_quantity"] = int(m.group(1))
-    m = re.search(r"update_steps=(\d+)", text)
-    if m:
-        out["hopfield_update_steps"] = int(m.group(1))
-    m = re.search(r"scaling=([^\s]+)", text)
-    if m and m.group(1) not in ("None", "auto"):
-        try:
-            out["hopfield_scaling"] = float(m.group(1))
-        except ValueError:
-            out["hopfield_scaling"] = None
-    return out
 
 
 def ann_path_for_run(ann_dir: Path, kind: str, split: int) -> Path:
@@ -195,16 +160,6 @@ def predict_egru(model: EGRUClassifier, x_val: torch.Tensor, device: torch.devic
     return np.asarray(pred, dtype=np.int64)
 
 
-@torch.no_grad()
-def predict_hopfield(
-    model: EGRUHopfieldClassifier, x_val: torch.Tensor, device: torch.device
-) -> np.ndarray:
-    model.eval()
-    logits = model(x_val.to(device))
-    pred = classify_hopfield(logits).detach().cpu()
-    return np.asarray(pred, dtype=np.int64)
-
-
 def eval_run_dir(
     run_dir: Path,
     *,
@@ -218,7 +173,6 @@ def eval_run_dir(
     video_fps: int | None,
 ) -> dict[str, str] | None:
     ckpt = run_dir / "model.pt"
-    summ = run_dir / "summary.txt"
     if not ckpt.is_file():
         return None
 
@@ -239,33 +193,12 @@ def eval_run_dir(
     wp = meta["wp"]
 
     hidden = 128
-    hopfield_quantity = 1
-    hopfield_update_steps = 0
-    hopfield_scaling = None
-    if model_type == "hopfield" and summ.is_file():
-        hp = parse_summary_hopfield(summ)
-        hidden = int(hp["hidden"])
-        hopfield_quantity = int(hp["hopfield_quantity"])
-        hopfield_update_steps = int(hp["hopfield_update_steps"])
-        hopfield_scaling = hp["hopfield_scaling"]
-
-    if model_type == "hopfield":
-        model = EGRUHopfieldClassifier(
-            input_size=in_features,
-            hidden_size=hidden,
-            num_classes=num_classes,
-            hopfield_quantity=hopfield_quantity,
-            hopfield_scaling=hopfield_scaling,
-            hopfield_update_steps=hopfield_update_steps,
-        )
-        pred_fn = predict_hopfield
-    else:
-        model = EGRUClassifier(
-            input_size=in_features,
-            hidden_size=hidden,
-            num_classes=num_classes,
-        )
-        pred_fn = predict_egru
+    model = EGRUClassifier(
+        input_size=in_features,
+        hidden_size=hidden,
+        num_classes=num_classes,
+    )
+    pred_fn = predict_egru
 
     try:
         state = torch.load(ckpt, map_location=device, weights_only=True)
@@ -347,8 +280,8 @@ def main() -> None:
     )
     p.add_argument(
         "--model-type",
-        choices=("egru", "hopfield"),
-        required=True,
+        choices=("egru",),
+        default="egru",
     )
     p.add_argument(
         "--feat-dir",

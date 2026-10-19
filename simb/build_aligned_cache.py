@@ -9,8 +9,7 @@ window centre times:
 
     $NWEAR_OUTPUT/simb/feature_cache/seed_<s>/sbj_<k>/aligned_val_with_times.pt
 
-Extracted from the thesis script ``eval_spiking_hopfield_map.py`` (cache branch);
-the alignment itself lives in ``dvs_imu_fusion_data.collect_aligned_split``.
+The alignment itself lives in ``dvs_imu_fusion_data.collect_aligned_split``.
 
     python simb/build_aligned_cache.py --seed 1 --val-subject 0 --device cuda:0
 """

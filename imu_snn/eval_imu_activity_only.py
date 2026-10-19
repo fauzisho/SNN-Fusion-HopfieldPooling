@@ -31,7 +31,6 @@ import torch.nn.functional as F
 from eval_precision_recall_from_checkpoints import (
     load_val_tensors,
     macro_precision_recall,
-    parse_summary_hopfield,
 )
 from pipeline_inertial import (
     ACTIVITY_CLASSES,
@@ -39,10 +38,6 @@ from pipeline_inertial import (
     macro_f1_score,
     temporal_map,
 )
-try:  # EGRU + Hopfield readout was a thesis variant; not shipped in this release
-    from pipeline_inertial_hopfield import EGRUHopfieldClassifier
-except ImportError:
-    EGRUHopfieldClassifier = None
 
 
 NUM_ACTIVITIES = len(ACTIVITY_CLASSES)
@@ -118,22 +113,11 @@ def evaluate_fold(args: argparse.Namespace) -> dict:
             f"Expected {TRAINED_NUM_CLASSES} trained classes, got {meta['num_classes']}"
         )
 
-    if args.model_type == "hopfield":
-        hp = parse_summary_hopfield(run_dir / "summary.txt")
-        model = EGRUHopfieldClassifier(
-            input_size=int(meta["in_features"]),
-            hidden_size=int(hp["hidden"]),
-            num_classes=TRAINED_NUM_CLASSES,
-            hopfield_quantity=int(hp["hopfield_quantity"]),
-            hopfield_scaling=hp["hopfield_scaling"],
-            hopfield_update_steps=int(hp["hopfield_update_steps"]),
-        )
-    else:
-        model = EGRUClassifier(
-            input_size=int(meta["in_features"]),
-            hidden_size=args.hidden,
-            num_classes=TRAINED_NUM_CLASSES,
-        )
+    model = EGRUClassifier(
+        input_size=int(meta["in_features"]),
+        hidden_size=args.hidden,
+        num_classes=TRAINED_NUM_CLASSES,
+    )
     try:
         state = torch.load(checkpoint, map_location=args.device, weights_only=True)
     except TypeError:
@@ -215,7 +199,7 @@ def main() -> None:
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--val-subject", type=int, required=True, choices=range(18))
     parser.add_argument(
-        "--model-type", choices=("egru", "hopfield"), default="egru"
+        "--model-type", choices=("egru",), default="egru"
     )
     parser.add_argument(
         "--out-root",

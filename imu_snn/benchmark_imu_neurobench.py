@@ -105,7 +105,7 @@ def benchmark_one_run(
 
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-    model = build_model("egru", F, C, hidden, 0, None, 0)
+    model = build_model(F, C, hidden)
     try:
         state = torch.load(ckpt, map_location=device, weights_only=True)
     except TypeError:

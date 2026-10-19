@@ -29,7 +29,7 @@ def _config_from_checkpoint(raw: dict, out_dir: Path) -> ExperimentConfig:
     if "events_tier" not in data_raw:
         data_raw["events_tier"] = "dvs128" if "dvs128" in str(out_dir) else "dvs240"
     data = DataConfig(**data_raw)
-    model = ModelConfig(**raw["model"])
+    model = ModelConfig.from_dict(raw["model"])
     train_defaults = {k.name: getattr(TrainConfig(), k.name) for k in fields(TrainConfig)}
     train_defaults.update(raw["train"])
     train = TrainConfig(**train_defaults)

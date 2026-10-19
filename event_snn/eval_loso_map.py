@@ -54,7 +54,7 @@ def _config_from_checkpoint(raw: dict, out_dir: Path) -> ExperimentConfig:
     data_raw = dict(raw["data"])
     data_raw["dataset_root"] = Path(data_raw["dataset_root"])
     data = DataConfig(**{k.name: data_raw[k.name] for k in fields(DataConfig) if k.name in data_raw})
-    model = ModelConfig(**{k.name: raw["model"][k.name] for k in fields(ModelConfig) if k.name in raw["model"]})
+    model = ModelConfig.from_dict(raw["model"])
     train_raw = dict(raw["train"])
     if train_raw.get("cache_dir") is not None:
         train_raw["cache_dir"] = Path(train_raw["cache_dir"])
