@@ -44,8 +44,8 @@ schedule skips 18 % of the event branch at a retention of 0.997–1.000.
 Code release accompanying the paper (NICE 2027). The repository contains the full
 pipeline (event conversion, both spiking encoders, the SIM A baselines, all fusion
 heads, evaluation, energy accounting and the IMU-gated schedule) and the per-fold
-results behind every table. Checkpoints and the converted event data will be released
-separately. Read [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) before re-running or
+results behind every table. The converted event data is available from the
+[N-WEAR download page](https://thesiswearsnn.nbg1.your-objectstorage.com/n-wear-events-dvs128/index.html); checkpoints will be released separately. Read [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) before re-running or
 extending the experiments.
 
 ## Contributions
@@ -334,12 +334,12 @@ docs/               REPRODUCE.md, KNOWN_ISSUES.md, CONTINUING_RESEARCH.md
 | Dataset | Source | Licence |
 | --- | --- | --- |
 | WEAR (RGB video, I3D features, inertial data) | <https://mariusbock.github.io/wear/> | CC BY-NC-SA 4.0 |
-| N-WEAR events (v2e conversion of WEAR) | regenerate with `data_preparation/` (release planned) | CC BY-NC-SA 4.0 (derived from WEAR) |
+| **N-WEAR events** (DVS128, v2e conversion of WEAR, 18 subjects, 16.5 GB) | **[download page](https://thesiswearsnn.nbg1.your-objectstorage.com/n-wear-events-dvs128/index.html)** · `bash data_preparation/download_events.sh` | CC BY-NC-SA 4.0 (derived from WEAR) |
 
 ## Continuing this work
 
 [docs/CONTINUING_RESEARCH.md](docs/CONTINUING_RESEARCH.md) explains how the stages fit
-together, what to fix first (event data of subjects 16/17, the IMU input layout, encoder
+together, what to consider before new experiments (event data of subjects 16/17, the IMU input layout, encoder
 model selection) and the open directions: physical DVS, neuromorphic hardware, a spiking
 fusion head, a cheaper event encoder and better gating.
 

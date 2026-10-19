@@ -1,6 +1,6 @@
 # Continuing this research
 
-A guide for whoever picks this up next: how the pieces fit, what to fix first, and
+A guide for whoever picks this up next: how the pieces fit, what to consider first, and
 which directions the paper leaves open.
 
 ## 1. Mental model of the code
@@ -25,19 +25,20 @@ WEAR I3D + inertial ──► WEAR baselines (A&D, TriDet) ──► 50 Hz frame
 * **Macro F1 is over all 18 classes.** Read `KNOWN_ISSUES.md` item 1 before comparing
   F1 across folds or papers.
 
-## 2. Fix these first
+## 2. Before building on the results
 
-1. **Event data of subjects 16/17** (`KNOWN_ISSUES.md` 1). Decide between reporting
-   F1 over present classes (no new runs, exact) and re-running SIM B on the complete
-   `_new` folders. Make `event_snn/dataset/loso.py` choose the folder explicitly instead
-   of silently preferring `_new`.
-2. **IMU input layout** (item 2). Transpose the channel-major windows and retrain the
-   IMU SNN. The current model reads 12 consecutive samples of one axis per step; a
-   correct 12-channel x 100-step input is the obvious first improvement.
-3. **Model selection** (item 4). Stop selecting the event checkpoint on the held-out
-   subject: use a validation subject from the training set or the last epoch.
-4. **Recover or verify clip cutting** (item 7) so the event dataset can be regenerated
-   from WEAR alone, then publish the event clips (CC BY-NC-SA 4.0, as WEAR).
+The reported results (thesis and paper) are reproduced exactly by this repository. For
+new experiments, consider these first (details in `KNOWN_ISSUES.md`):
+
+1. **Event data of subjects 16/17** (item 1). The SIM B stage read the first conversion;
+   new runs can use the complete `_new` folders by resolving the folder with
+   `subject_events_dir`. Expect different SIM B numbers than reported.
+2. **IMU input layout** (item 2). Transposing the channel-major windows and retraining
+   is the obvious first improvement of the IMU SNN.
+3. **Model selection** (item 4). Select the event checkpoint on a validation subject
+   from the training set, or keep the last epoch.
+4. **Clip cutting** (item 7). `data_preparation/cut_wear_clips.py` is a reimplementation;
+   verify its boundaries before regenerating the event dataset.
 
 ## 3. Open research directions
 

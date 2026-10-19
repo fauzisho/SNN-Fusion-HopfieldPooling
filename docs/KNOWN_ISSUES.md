@@ -1,25 +1,36 @@
 # Known issues and deviations
 
-Every point below was found while auditing the original experiment code against the
-paper. None of them changes a number in the paper as published from these runs (the
-shipped `results/` reproduce Tables I and II exactly), but several matter for anyone
-who re-runs or extends the pipeline. Ordered by impact.
+The submitted thesis and the paper are the reference: this repository reproduces their
+numbers exactly (`results/`, `evaluation/build_table1.py`), and the code is kept as it
+was run. The points below are notes for anyone who re-runs or extends the pipeline;
+they describe how the reported results were produced, not changes to them.
+Ordered by relevance for future work.
 
-## 1. Subjects 16 and 17: incomplete event data in the SIM B evaluation
+## 1. Subjects 16 and 17 in the SIM B evaluation
 
-The first v2e conversion of subjects 16 and 17 (`sbj_16_events_dvs128`,
-`sbj_17_events_dvs128`) contains only **12 and 11 of the 18 activities** (several clip
-downloads were empty). A complete re-conversion exists (`*_events_dvs128_new`, 829 and
-855 clips, cut with the 60 fps annotations).
+The event data itself is complete: subjects 16 and 17 were re-converted on 2026-08-11
+(`sbj_16_events_dvs128_new`, `sbj_17_events_dvs128_new`: 829 and 855 clips, all 18
+activities, cut with the 60 fps annotations). The first conversion
+(`sbj_16_events_dvs128`, `sbj_17_events_dvs128`) contains only **12 and 11 of the 18
+activities** (several clip downloads were empty), and **the SIM B results were computed
+on that first conversion**:
 
-* The aligned feature caches, the SIM B heads and all SIM B evaluations used the
-  incomplete folders.
+* `simb/dvs_imu_fusion_data.py` and `simb/eval_simb_native_fusion.py` build the path
+  `sbj_<k>_events_dvs128` without the `_new` suffix, so the aligned feature caches, the
+  SIM B heads and all SIM B evaluations used the incomplete folders (the caches of the
+  folds that hold out 16 / 17 contain 12 / 11 classes; held-out subject 17 scores exactly
+  11/18 = 61.11 % F1 for every head after the vote). The copies of these results on S3
+  (`chapter 4/vote10_native_vs_aligned/`) are the same files.
 * Macro F1 is averaged over all 18 classes, and a class without ground truth scores 0,
   so the 6 folds that hold out subject 16 or 17 cap F1 at 66.7 % and 61.1 %. Every SIM B
   F1 (and every aligned-window F1, SIM A included) is about 4 points lower than the
   per-class performance. Accuracy is not affected. Rankings within a table do not change.
 * Because a missing class always contributes 0, the exact correction without new runs is
   `F1_present = F1_18 x 18 / n_present_classes` per fold.
+* The code in `simb/` is kept as run, so it reproduces the reported numbers. To use the
+  complete conversion in new work, resolve the folder with
+  `event_snn.dataset.loso.subject_events_dir(dataset_base, k, "dvs128")` in those two
+  scripts and re-run SIM B (about 20 GPU-minutes per fold).
 * **Mixed data in the event SNN runs.** `event_snn/dataset/loso.py` silently prefers a
   `*_new` folder when one exists. The `_new` folders appeared on 2026-08-11, after folds
   0-15 had been trained (with the incomplete 16/17 as training data). The folds that hold

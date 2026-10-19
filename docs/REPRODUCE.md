@@ -35,6 +35,15 @@ mkdir -p cluster && cp ../../sima/wear_patches/run_*_split.py cluster/
 cd camera_baseline/tridet/libs/utils && python setup.py build_ext --inplace   # TriDet NMS
 ```
 
+**Event data.** The converted DVS128 clips (18 subjects, 16.5 GB, subjects 16/17 in
+their complete re-conversion) are public: [download page](https://thesiswearsnn.nbg1.your-objectstorage.com/n-wear-events-dvs128/index.html), or
+
+```bash
+bash data_preparation/download_events.sh          # into $NWEAR_DATA, verifies SHA-256
+```
+
+With these, step `01_convert_events.sh` can be skipped.
+
 **Data** (`$NWEAR_DATA`, layout in `nwear_paths.py`): download WEAR
 (https://mariusbock.github.io/wear/): the 60 fps annotations, the processed inertial
 features `50hz/120_frames_60_stride`, the I3D features `60fps/120_frames_60_stride`

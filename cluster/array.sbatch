@@ -16,7 +16,9 @@ STEP="${1:?usage: sbatch --array=1-54 cluster/array.sbatch pipeline/<step>.sh}"
 mkdir -p logs
 if [[ -n "${CONTAINER:-}" ]]; then
     # --cleanenv + PYTHONNOUSERSITE keep host packages (e.g. ~/.local torch) out of the container
-    singularity exec --nv --cleanenv -B "${NWEAR_DATA:-$PWD}" -B "${NWEAR_OUTPUT:-$PWD}" -B "$PWD" "${CONTAINER}" \
+    # EXTRA_BINDS: further "-B dir" arguments, e.g. when outputs are symlinks to other disks
+    # shellcheck disable=SC2086
+    singularity exec --nv --cleanenv -B "${NWEAR_DATA:-$PWD}" -B "${NWEAR_OUTPUT:-$PWD}" -B "$PWD" ${EXTRA_BINDS:-} "${CONTAINER}" \
         env PYTHONNOUSERSITE=1 SLURM_ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID}" \
             NWEAR_DATA="${NWEAR_DATA:-}" NWEAR_OUTPUT="${NWEAR_OUTPUT:-}" WEAR_REPO="${WEAR_REPO:-}" \
             NEUROBENCH_ROOT="${NEUROBENCH_ROOT:-}" \
