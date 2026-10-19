@@ -1,0 +1,32 @@
+# Versions resolved inside the container used for every paper run
+# (environment/wearsnn_v2e.def, base image pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime,
+# Python 3.10.14). Install PyTorch for your CUDA version first, then:
+#   pip install -r environment/requirements.txt
+
+torch==2.2.2
+torchvision==0.17.2
+numpy==1.26.4
+scipy==1.15.3
+pandas==2.3.3
+scikit-learn==1.7.2
+matplotlib==3.10.9
+h5py==3.16.0
+pyyaml
+joblib
+torchmetrics
+imageio
+imageio-ffmpeg>=0.4
+opencv-python==4.13.0.92
+
+# Spiking encoders (layer wrappers, multi-step mode, reset_net)
+spikingjelly==0.0.0.0.14
+
+# Hopfield pooling heads (hflayers 1.0.2)
+hopfield-layers @ git+https://github.com/ml-jku/hopfield-layers.git
+
+# Event conversion (only for data_preparation/); the paper used this commit
+v2e @ git+https://github.com/SensorsINI/v2e.git@cac638444557a224ba6ee5c29260916f152c00bd
+
+# Energy accounting (only for the *neurobench* scripts)
+neurobench==2.3.0
+snntorch==1.0.0

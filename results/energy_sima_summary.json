@@ -1,0 +1,1654 @@
+{
+  "energy_constant_pj_per_dense_mac": 4.6,
+  "attend_and_discriminate": {
+    "model": "Attend-and-Discriminate IMU",
+    "window_seconds": 2.0,
+    "input_shape": [
+      1,
+      100,
+      12
+    ],
+    "neurobench_supported_dense_macs": 128142336.0,
+    "neurobench_effective_macs": null,
+    "supported_layer_counter": "shape fallback matching NeuroBench Dense",
+    "supplemental_gru_macs": 110100480.0,
+    "supplemental_attention_bmm_macs": 368640.0,
+    "supplemental_temporal_weight_macs": 20480.0,
+    "dense_macs_per_window": 238631936.0,
+    "mac_proxy_mj_per_window": 1.0977069056,
+    "notes": [
+      "Dense MAC proxy; activation sparsity is not credited on conventional dense hardware.",
+      "GRU and functional attention products are supplemented because NeuroBench does not count them correctly."
+    ]
+  },
+  "tridet_imu": {
+    "model": "TriDet IMU",
+    "window_seconds": 2.0,
+    "input_dim": 1200,
+    "subjects": 18,
+    "dense_macs_per_window_macro_mean": 18677863.36566023,
+    "dense_macs_per_window_macro_std": 392160.1063297856,
+    "dense_macs_per_window_micro_mean": 18630519.630778264,
+    "mac_proxy_mj_per_window_macro_mean": 0.08591817148203705,
+    "total_profiled_windows": 54493,
+    "notes": [
+      "Counts Conv/Linear synaptic MACs, matching NeuroBench Dense semantics.",
+      "Subject-level TriDet inference is amortized over valid 2 s feature windows.",
+      "Padding performed by the released TriDet preprocessing is included.",
+      "NMS and other non-synaptic postprocessing are excluded.",
+      "For I3D input, upstream RGB-to-I3D feature extraction is not included."
+    ]
+  },
+  "tridet_i3d": {
+    "model": "TriDet I3D head only",
+    "window_seconds": 2.0,
+    "input_dim": 2048,
+    "subjects": 18,
+    "dense_macs_per_window_macro_mean": 19999109.807731025,
+    "dense_macs_per_window_macro_std": 419900.96306067007,
+    "dense_macs_per_window_micro_mean": 19948417.04527187,
+    "mac_proxy_mj_per_window_macro_mean": 0.0919959051155627,
+    "total_profiled_windows": 54493,
+    "notes": [
+      "Counts Conv/Linear synaptic MACs, matching NeuroBench Dense semantics.",
+      "Subject-level TriDet inference is amortized over valid 2 s feature windows.",
+      "Padding performed by the released TriDet preprocessing is included.",
+      "NMS and other non-synaptic postprocessing are excluded.",
+      "For I3D input, upstream RGB-to-I3D feature extraction is not included."
+    ]
+  },
+  "sima_fusion_heads": {
+    "bf1": {
+      "single_hopfield": {
+        "dense_macs_per_fusion_decision": 16241.777777777777,
+        "dense_macs_std": 47.61269319686841,
+        "dense_macs_min": 16000.0,
+        "dense_macs_max": 16256.0,
+        "mac_proxy_mj_per_fusion_decision": 7.471217777777778e-05,
+        "method": "torch.profiler matrix FLOPs / 2",
+        "n_folds": 54,
+        "notes": [
+          "Mean over 54 frozen LOSO heads.",
+          "Each fold uses its first active validation frame (single) or first validation sequence (double).",
+          "Softmax, normalization, and standalone elementwise operations are excluded from MACs."
+        ]
+      },
+      "double_hopfield": {
+        "dense_macs_per_fusion_decision": 3932558.222222222,
+        "dense_macs_std": 8838.723536857926,
+        "dense_macs_min": 3924736.0,
+        "dense_macs_max": 3950848.0,
+        "mac_proxy_mj_per_fusion_decision": 0.01808976782222222,
+        "method": "torch.profiler matrix FLOPs / 2",
+        "n_folds": 54,
+        "notes": [
+          "Mean over 54 frozen LOSO heads.",
+          "Each fold uses its first active validation frame (single) or first validation sequence (double).",
+          "Softmax, normalization, and standalone elementwise operations are excluded from MACs."
+        ]
+      },
+      "per_fold": [
+        {
+          "seed": 1,
+          "split": 1,
+          "single_macs": 16000.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_1",
+            "single_input_frame_index": 45,
+            "double_input_start_frame_index": 0,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 2,
+          "single_macs": 16256.0,
+          "double_macs": 3924736.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_2",
+            "single_input_frame_index": 139725,
+            "double_input_start_frame_index": 139725,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 3,
+          "single_macs": 16256.0,
+          "double_macs": 3937536.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_3",
+            "single_input_frame_index": 278723,
+            "double_input_start_frame_index": 278625,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 4,
+          "single_macs": 16128.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_4",
+            "single_input_frame_index": 456974,
+            "double_input_start_frame_index": 456825,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 5,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_5",
+            "single_input_frame_index": 665375,
+            "double_input_start_frame_index": 665375,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 6,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_6",
+            "single_input_frame_index": 825008,
+            "double_input_start_frame_index": 824950,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 7,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_7",
+            "single_input_frame_index": 932544,
+            "double_input_start_frame_index": 932475,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 8,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_8",
+            "single_input_frame_index": 1057709,
+            "double_input_start_frame_index": 1057650,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 9,
+          "single_macs": 16256.0,
+          "double_macs": 3924992.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_9",
+            "single_input_frame_index": 1200400,
+            "double_input_start_frame_index": 1200300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 10,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_10",
+            "single_input_frame_index": 1325085,
+            "double_input_start_frame_index": 1325050,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 11,
+          "single_macs": 16128.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_11",
+            "single_input_frame_index": 1433405,
+            "double_input_start_frame_index": 1433350,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 12,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_12",
+            "single_input_frame_index": 1632791,
+            "double_input_start_frame_index": 1632600,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 13,
+          "single_macs": 16256.0,
+          "double_macs": 3950848.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_13",
+            "single_input_frame_index": 1743883,
+            "double_input_start_frame_index": 1743700,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 14,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_14",
+            "single_input_frame_index": 1907418,
+            "double_input_start_frame_index": 1907200,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 15,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_15",
+            "single_input_frame_index": 2106365,
+            "double_input_start_frame_index": 2106100,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 16,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_16",
+            "single_input_frame_index": 2266264,
+            "double_input_start_frame_index": 2266150,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 17,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_17",
+            "single_input_frame_index": 2396650,
+            "double_input_start_frame_index": 2396300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 18,
+          "single_macs": 16128.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_1/split_18",
+            "single_input_frame_index": 2571896,
+            "double_input_start_frame_index": 2571800,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 1,
+          "single_macs": 16256.0,
+          "double_macs": 3937792.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_1",
+            "single_input_frame_index": 45,
+            "double_input_start_frame_index": 0,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 2,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_2",
+            "single_input_frame_index": 139725,
+            "double_input_start_frame_index": 139725,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 3,
+          "single_macs": 16128.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_3",
+            "single_input_frame_index": 278723,
+            "double_input_start_frame_index": 278625,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 4,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_4",
+            "single_input_frame_index": 456974,
+            "double_input_start_frame_index": 456825,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 5,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_5",
+            "single_input_frame_index": 665375,
+            "double_input_start_frame_index": 665375,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 6,
+          "single_macs": 16256.0,
+          "double_macs": 3950848.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_6",
+            "single_input_frame_index": 825008,
+            "double_input_start_frame_index": 824950,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 7,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_7",
+            "single_input_frame_index": 932544,
+            "double_input_start_frame_index": 932475,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 8,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_8",
+            "single_input_frame_index": 1057709,
+            "double_input_start_frame_index": 1057650,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 9,
+          "single_macs": 16256.0,
+          "double_macs": 3950848.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_9",
+            "single_input_frame_index": 1200400,
+            "double_input_start_frame_index": 1200300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 10,
+          "single_macs": 16256.0,
+          "double_macs": 3950848.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_10",
+            "single_input_frame_index": 1325085,
+            "double_input_start_frame_index": 1325050,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 11,
+          "single_macs": 16256.0,
+          "double_macs": 3950848.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_11",
+            "single_input_frame_index": 1433405,
+            "double_input_start_frame_index": 1433350,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 12,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_12",
+            "single_input_frame_index": 1632791,
+            "double_input_start_frame_index": 1632600,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 13,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_13",
+            "single_input_frame_index": 1743883,
+            "double_input_start_frame_index": 1743700,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 14,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_14",
+            "single_input_frame_index": 1907418,
+            "double_input_start_frame_index": 1907200,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 15,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_15",
+            "single_input_frame_index": 2106365,
+            "double_input_start_frame_index": 2106100,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 16,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_16",
+            "single_input_frame_index": 2266264,
+            "double_input_start_frame_index": 2266150,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 17,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_17",
+            "single_input_frame_index": 2396650,
+            "double_input_start_frame_index": 2396300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 18,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_2/split_18",
+            "single_input_frame_index": 2571896,
+            "double_input_start_frame_index": 2571800,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 1,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_1",
+            "single_input_frame_index": 45,
+            "double_input_start_frame_index": 0,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 2,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_2",
+            "single_input_frame_index": 139725,
+            "double_input_start_frame_index": 139725,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 3,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_3",
+            "single_input_frame_index": 278723,
+            "double_input_start_frame_index": 278625,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 4,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_4",
+            "single_input_frame_index": 456974,
+            "double_input_start_frame_index": 456825,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 5,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_5",
+            "single_input_frame_index": 665375,
+            "double_input_start_frame_index": 665375,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 6,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_6",
+            "single_input_frame_index": 825008,
+            "double_input_start_frame_index": 824950,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 7,
+          "single_macs": 16256.0,
+          "double_macs": 3924992.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_7",
+            "single_input_frame_index": 932544,
+            "double_input_start_frame_index": 932475,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 8,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_8",
+            "single_input_frame_index": 1057709,
+            "double_input_start_frame_index": 1057650,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 9,
+          "single_macs": 16256.0,
+          "double_macs": 3924992.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_9",
+            "single_input_frame_index": 1200400,
+            "double_input_start_frame_index": 1200300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 10,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_10",
+            "single_input_frame_index": 1325085,
+            "double_input_start_frame_index": 1325050,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 11,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_11",
+            "single_input_frame_index": 1433405,
+            "double_input_start_frame_index": 1433350,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 12,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_12",
+            "single_input_frame_index": 1632791,
+            "double_input_start_frame_index": 1632600,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 13,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_13",
+            "single_input_frame_index": 1743883,
+            "double_input_start_frame_index": 1743700,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 14,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_14",
+            "single_input_frame_index": 1907418,
+            "double_input_start_frame_index": 1907200,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 15,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_15",
+            "single_input_frame_index": 2106365,
+            "double_input_start_frame_index": 2106100,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 16,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_16",
+            "single_input_frame_index": 2266264,
+            "double_input_start_frame_index": 2266150,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 17,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_17",
+            "single_input_frame_index": 2396650,
+            "double_input_start_frame_index": 2396300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 18,
+          "single_macs": 16256.0,
+          "double_macs": 3950848.0,
+          "provenance": {
+            "pipeline": "BF1: A-and-D IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf1_ad_camera/seed_3/split_18",
+            "single_input_frame_index": 2571896,
+            "double_input_start_frame_index": 2571800,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        }
+      ]
+    },
+    "bf2": {
+      "single_hopfield": {
+        "dense_macs_per_fusion_decision": 16256.0,
+        "dense_macs_std": 0.0,
+        "dense_macs_min": 16256.0,
+        "dense_macs_max": 16256.0,
+        "mac_proxy_mj_per_fusion_decision": 7.47776e-05,
+        "method": "torch.profiler matrix FLOPs / 2",
+        "n_folds": 54,
+        "notes": [
+          "Mean over 54 frozen LOSO heads.",
+          "Each fold uses its first active validation frame (single) or first validation sequence (double).",
+          "Softmax, normalization, and standalone elementwise operations are excluded from MACs."
+        ]
+      },
+      "double_hopfield": {
+        "dense_macs_per_fusion_decision": 3926641.777777778,
+        "dense_macs_std": 4771.127925924287,
+        "dense_macs_min": 3924736.0,
+        "dense_macs_max": 3950848.0,
+        "mac_proxy_mj_per_fusion_decision": 0.018062552177777778,
+        "method": "torch.profiler matrix FLOPs / 2",
+        "n_folds": 54,
+        "notes": [
+          "Mean over 54 frozen LOSO heads.",
+          "Each fold uses its first active validation frame (single) or first validation sequence (double).",
+          "Softmax, normalization, and standalone elementwise operations are excluded from MACs."
+        ]
+      },
+      "per_fold": [
+        {
+          "seed": 1,
+          "split": 1,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_1",
+            "single_input_frame_index": 45,
+            "double_input_start_frame_index": 0,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 2,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_2",
+            "single_input_frame_index": 139725,
+            "double_input_start_frame_index": 139725,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 3,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_3",
+            "single_input_frame_index": 278723,
+            "double_input_start_frame_index": 278625,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 4,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_4",
+            "single_input_frame_index": 456974,
+            "double_input_start_frame_index": 456825,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 5,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_5",
+            "single_input_frame_index": 665375,
+            "double_input_start_frame_index": 665375,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 6,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_6",
+            "single_input_frame_index": 825008,
+            "double_input_start_frame_index": 824950,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 7,
+          "single_macs": 16256.0,
+          "double_macs": 3924992.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_7",
+            "single_input_frame_index": 932544,
+            "double_input_start_frame_index": 932475,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 8,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_8",
+            "single_input_frame_index": 1057709,
+            "double_input_start_frame_index": 1057650,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 9,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_9",
+            "single_input_frame_index": 1200400,
+            "double_input_start_frame_index": 1200300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 10,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_10",
+            "single_input_frame_index": 1325085,
+            "double_input_start_frame_index": 1325050,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 11,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_11",
+            "single_input_frame_index": 1433405,
+            "double_input_start_frame_index": 1433350,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 12,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_12",
+            "single_input_frame_index": 1632791,
+            "double_input_start_frame_index": 1632600,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 13,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_13",
+            "single_input_frame_index": 1743883,
+            "double_input_start_frame_index": 1743700,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 14,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_14",
+            "single_input_frame_index": 1907418,
+            "double_input_start_frame_index": 1907200,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 15,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_15",
+            "single_input_frame_index": 2106365,
+            "double_input_start_frame_index": 2106100,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 16,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_16",
+            "single_input_frame_index": 2266264,
+            "double_input_start_frame_index": 2266150,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 17,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_17",
+            "single_input_frame_index": 2396650,
+            "double_input_start_frame_index": 2396300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 1,
+          "split": 18,
+          "single_macs": 16256.0,
+          "double_macs": 3924992.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_1/split_18",
+            "single_input_frame_index": 2571896,
+            "double_input_start_frame_index": 2571800,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 1,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_1",
+            "single_input_frame_index": 45,
+            "double_input_start_frame_index": 0,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 2,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_2",
+            "single_input_frame_index": 139725,
+            "double_input_start_frame_index": 139725,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 3,
+          "single_macs": 16256.0,
+          "double_macs": 3950848.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_3",
+            "single_input_frame_index": 278723,
+            "double_input_start_frame_index": 278625,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 4,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_4",
+            "single_input_frame_index": 456974,
+            "double_input_start_frame_index": 456825,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 5,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_5",
+            "single_input_frame_index": 665375,
+            "double_input_start_frame_index": 665375,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 6,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_6",
+            "single_input_frame_index": 825008,
+            "double_input_start_frame_index": 824950,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 7,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_7",
+            "single_input_frame_index": 932544,
+            "double_input_start_frame_index": 932475,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 8,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_8",
+            "single_input_frame_index": 1057709,
+            "double_input_start_frame_index": 1057650,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 9,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_9",
+            "single_input_frame_index": 1200400,
+            "double_input_start_frame_index": 1200300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 10,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_10",
+            "single_input_frame_index": 1325085,
+            "double_input_start_frame_index": 1325050,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 11,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_11",
+            "single_input_frame_index": 1433405,
+            "double_input_start_frame_index": 1433350,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 12,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_12",
+            "single_input_frame_index": 1632791,
+            "double_input_start_frame_index": 1632600,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 13,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_13",
+            "single_input_frame_index": 1743883,
+            "double_input_start_frame_index": 1743700,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 14,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_14",
+            "single_input_frame_index": 1907418,
+            "double_input_start_frame_index": 1907200,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 15,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_15",
+            "single_input_frame_index": 2106365,
+            "double_input_start_frame_index": 2106100,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 16,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_16",
+            "single_input_frame_index": 2266264,
+            "double_input_start_frame_index": 2266150,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 17,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_17",
+            "single_input_frame_index": 2396650,
+            "double_input_start_frame_index": 2396300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 2,
+          "split": 18,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_2/split_18",
+            "single_input_frame_index": 2571896,
+            "double_input_start_frame_index": 2571800,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 1,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_1",
+            "single_input_frame_index": 45,
+            "double_input_start_frame_index": 0,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 2,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_2",
+            "single_input_frame_index": 139725,
+            "double_input_start_frame_index": 139725,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 3,
+          "single_macs": 16256.0,
+          "double_macs": 3924736.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_3",
+            "single_input_frame_index": 278723,
+            "double_input_start_frame_index": 278625,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 4,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_4",
+            "single_input_frame_index": 456974,
+            "double_input_start_frame_index": 456825,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 5,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_5",
+            "single_input_frame_index": 665375,
+            "double_input_start_frame_index": 665375,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 6,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_6",
+            "single_input_frame_index": 825008,
+            "double_input_start_frame_index": 824950,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 7,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_7",
+            "single_input_frame_index": 932544,
+            "double_input_start_frame_index": 932475,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 8,
+          "single_macs": 16256.0,
+          "double_macs": 3924736.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_8",
+            "single_input_frame_index": 1057709,
+            "double_input_start_frame_index": 1057650,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 9,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_9",
+            "single_input_frame_index": 1200400,
+            "double_input_start_frame_index": 1200300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 10,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_10",
+            "single_input_frame_index": 1325085,
+            "double_input_start_frame_index": 1325050,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 11,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_11",
+            "single_input_frame_index": 1433405,
+            "double_input_start_frame_index": 1433350,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 12,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_12",
+            "single_input_frame_index": 1632791,
+            "double_input_start_frame_index": 1632600,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 13,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_13",
+            "single_input_frame_index": 1743883,
+            "double_input_start_frame_index": 1743700,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 14,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_14",
+            "single_input_frame_index": 1907418,
+            "double_input_start_frame_index": 1907200,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 15,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_15",
+            "single_input_frame_index": 2106365,
+            "double_input_start_frame_index": 2106100,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 16,
+          "single_macs": 16256.0,
+          "double_macs": 3938048.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_16",
+            "single_input_frame_index": 2266264,
+            "double_input_start_frame_index": 2266150,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 17,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_17",
+            "single_input_frame_index": 2396650,
+            "double_input_start_frame_index": 2396300,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        },
+        {
+          "seed": 3,
+          "split": 18,
+          "single_macs": 16256.0,
+          "double_macs": 3925248.0,
+          "provenance": {
+            "pipeline": "BF2: TriDet IMU + TriDet I3D",
+            "fold": "$NWEAR_OUTPUT/sima/bf2_imu_camera/seed_3/split_18",
+            "single_input_frame_index": 2571896,
+            "double_input_start_frame_index": 2571800,
+            "double_input_sequence_length": 100,
+            "checkpoint_weights_loaded": true
+          }
+        }
+      ]
+    }
+  },
+  "sima_encoder_totals": {
+    "ad_imu_plus_tridet_i3d_dense_macs_per_window": 258631045.80773103,
+    "ad_imu_plus_tridet_i3d_mac_proxy_mj_per_window": 1.1897028107155625,
+    "tridet_imu_plus_tridet_i3d_dense_macs_per_window": 38676973.17339125,
+    "tridet_imu_plus_tridet_i3d_mac_proxy_mj_per_window": 0.17791407659759975
+  },
+  "sima_pipeline_lower_bounds_one_fusion_decision": {
+    "bf1_ad_i3d_single_hopfield_macs": 258647287.58550882,
+    "bf1_ad_i3d_single_hopfield_mj": 1.1897775228933405,
+    "bf1_ad_i3d_double_hopfield_macs": 262563604.02995324,
+    "bf1_ad_i3d_double_hopfield_mj": 1.2077925785377848,
+    "bf2_tridet_imu_i3d_single_hopfield_macs": 38693229.17339125,
+    "bf2_tridet_imu_i3d_single_hopfield_mj": 0.17798885419759974,
+    "bf2_tridet_imu_i3d_double_hopfield_macs": 42603614.95116903,
+    "bf2_tridet_imu_i3d_double_hopfield_mj": 0.1959766287753775
+  }
+}

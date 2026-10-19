@@ -1,0 +1,61 @@
+Bootstrap: docker
+From: pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime
+
+%labels
+    Author sholichin
+    Project wearsnn
+    Description Singularity runtime used for all N-WEAR paper runs: v2e conversion, event / IMU SNN training, Hopfield fusion heads
+
+%help
+    Third-party imports required by the repo:
+      pipeline_inertial.py:         numpy, pandas, matplotlib, torch (torch from base image).
+      pipeline_inertial_hopfield.py: hflayers (hopfield-layers, from git).
+      train_v2e_snn.py:             h5py, matplotlib, numpy, sklearn, torch; model code uses spikingjelly.
+      clip_to_v2e.sh:               SensorsINI v2e (pip from git), opencv, dv_processing, SuperSloMo checkpoint on host.
+    After editing this file you MUST rebuild wearsnn_v2e.sif and use the new image or jobs will still fail.
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        python3-pip \
+        git \
+        build-essential \
+        ffmpeg \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender1
+    rm -rf /var/lib/apt/lists/*
+
+    python3 -m pip install --upgrade pip setuptools wheel
+
+    # Pin NumPy < 2 for ABI compatibility with this PyTorch wheel; install pandas/matplotlib explicitly for IMU pipeline.
+    python3 -m pip install --no-cache-dir \
+        "numpy>=1.26,<2" \
+        "pandas>=2.0,<3" \
+        matplotlib \
+        h5py \
+        scikit-learn \
+        torchmetrics \
+        spikingjelly \
+        imageio \
+        "imageio-ffmpeg>=0.4"
+
+    # v2e: MP4 → synthetic DVS (data_preparation/clips_dvs128_to_v2e.sh, inside singularity exec --nv).
+    python3 -m pip install --no-cache-dir "git+https://github.com/SensorsINI/v2e.git"
+    # Keep NumPy 1.x for PyTorch wheel ABI (v2e may request a wider numpy range).
+    python3 -m pip install --no-cache-dir "numpy>=1.26,<2"
+
+    # hopfield-layers: HopfieldPooling for pipeline_inertial_hopfield.py.
+    python3 -m pip install --no-cache-dir "git+https://github.com/ml-jku/hopfield-layers.git"
+
+    # Fail the image build if anything required at runtime is missing (heredocs must not indent Python — breaks stdin).
+    python3 -c "import importlib; m=('numpy','pandas','matplotlib','matplotlib.pyplot','torch','h5py','sklearn','torchmetrics','spikingjelly','cv2','v2ecore','hflayers'); [importlib.import_module(x) for x in m]; print('dependency check ok:', len(m), 'modules')"
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export MPLBACKEND=Agg
+
+%runscript
+    exec python3 "$@"

@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# data, checkpoints and caches live outside git ($NWEAR_DATA, $NWEAR_OUTPUT)
+data/
+outputs/
+third_party/
+logs/
+*.pt
+*.pth
+*.pth.tar
+*.ckpt
+*.npz
+*.npy
+*.h5
+*.sif
+
+# credentials must never be committed
+.env
+*credentials*

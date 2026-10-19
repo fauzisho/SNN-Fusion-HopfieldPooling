@@ -1,0 +1,312 @@
+--- a/main.py
++++ b/main.py
+@@ -18,8 +18,6 @@
+ import torch
+ import pandas as pd
+ import numpy as np
+-import neptune
+-from neptune.types import File
+ from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
+ 
+ from inertial_baseline.train import run_inertial_network
+@@ -32,12 +30,15 @@
+ 
+ def main(args):
+     if args.neptune:
++        import neptune
++        from neptune.types import File
+         run = neptune.init_run(
+         project="",
+         api_token=""
+         )
+     else:
+         run = None
++        File = None
+ 
+     config = load_config(args.config)
+     config['init_rand_seed'] = args.seed
+@@ -49,7 +50,12 @@
+         run_id = args.run_id
+     
+     ts = datetime.datetime.fromtimestamp(int(time.time()))
+-    log_dir = os.path.join('logs', config['name'], str(ts) + '_' + run_id)
++    wear_log_root = os.environ.get('WEAR_LOG_ROOT')
++    if wear_log_root:
++        log_dir = wear_log_root
++    else:
++        log_dir = os.path.join('logs', config['name'], str(ts) + '_' + run_id)
++    os.makedirs(log_dir, exist_ok=True)
+     sys.stdout = Logger(os.path.join(log_dir, 'log.txt'))
+ 
+     # save the current cfg
+@@ -90,11 +96,18 @@
+             t_losses, v_losses, v_mAP, v_preds, v_gt = run_tridet(val_sbjs, config, log_dir, args.ckpt_freq, args.resume, rng_generator, run)
+         
+         # raw results
+-        conf_mat = confusion_matrix(v_gt, v_preds, normalize='true', labels=range(len(config['labels'])))
+-        v_acc = conf_mat.diagonal()/conf_mat.sum(axis=1)
+-        v_prec = precision_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(config['labels'])))
+-        v_rec = recall_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(config['labels'])))
+-        v_f1 = f1_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(config['labels'])))
++        if len(v_gt) > 0:
++            conf_mat = confusion_matrix(v_gt, v_preds, normalize='true', labels=range(len(config['labels'])))
++            v_acc = conf_mat.diagonal()/conf_mat.sum(axis=1)
++            v_prec = precision_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(config['labels'])))
++            v_rec = recall_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(config['labels'])))
++            v_f1 = f1_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(config['labels'])))
++        else:
++            conf_mat = None
++            v_acc = np.full(len(config['labels']), np.nan)
++            v_prec = np.full(len(config['labels']), np.nan)
++            v_rec = np.full(len(config['labels']), np.nan)
++            v_f1 = np.full(len(config['labels']), np.nan)
+ 
+         # print to terminal
+         block1 = '\nFINAL RESULTS SUBJECT {}'.format(i)
+@@ -105,33 +118,42 @@
+         for tiou, tiou_mAP in zip(config['dataset']['tiou_thresholds'], v_mAP):
+             block4 += 'mAP@' + str(tiou) +  ' {:>4.2f} (%) '.format(tiou_mAP*100)
+         block5 = ''
+-        block5  += '\t\tAcc {:>4.2f} (%)'.format(np.nanmean(v_acc) * 100)
+-        block5  += ' Prec {:>4.2f} (%)'.format(np.nanmean(v_prec) * 100)
+-        block5  += ' Rec {:>4.2f} (%)'.format(np.nanmean(v_rec) * 100)
+-        block5  += ' F1 {:>4.2f} (%)\n'.format(np.nanmean(v_f1) * 100)
++        if conf_mat is not None:
++            block5  += '\t\tAcc {:>4.2f} (%)'.format(np.nanmean(v_acc) * 100)
++            block5  += ' Prec {:>4.2f} (%)'.format(np.nanmean(v_prec) * 100)
++            block5  += ' Rec {:>4.2f} (%)'.format(np.nanmean(v_rec) * 100)
++            block5  += ' F1 {:>4.2f} (%)\n'.format(np.nanmean(v_f1) * 100)
+ 
+-        print('\n'.join([block1, block2, block3, block4, block5]))
++        print('\n'.join([block1, block2, block3, block4] + ([block5] if block5 else [])))
+                                 
+         all_v_mAP = np.append(all_v_mAP, v_mAP[None, :], axis=0)
+         all_v_gt = np.append(all_v_gt, v_gt)
+         all_v_pred = np.append(all_v_pred, v_preds)
+ 
+         # save raw confusion matrix
+-        _, ax = plt.subplots(figsize=(15, 15), layout="constrained")
+-        conf_disp = ConfusionMatrixDisplay(confusion_matrix=conf_mat, display_labels=config['labels'])
+-        conf_disp.plot(ax=ax, xticks_rotation='vertical', colorbar=False)
+-        ax.set_title('Confusion Matrix ' + name + ' (raw)')
+-        plt.savefig(os.path.join(log_dir, name + '_raw.png'))
+-        plt.close()
+-        if run is not None:
+-            run['conf_matrices'].append(_, name=name + '_raw')
++        if conf_mat is not None:
++            _, ax = plt.subplots(figsize=(15, 15), layout="constrained")
++            conf_disp = ConfusionMatrixDisplay(confusion_matrix=conf_mat, display_labels=config['labels'])
++            conf_disp.plot(ax=ax, xticks_rotation='vertical', colorbar=False)
++            ax.set_title('Confusion Matrix ' + name + ' (raw)')
++            plt.savefig(os.path.join(log_dir, name + '_raw.png'))
++            plt.close()
++            if run is not None:
++                run['conf_matrices'].append(_, name=name + '_raw')
+ 
+     # final raw results across all splits
+-    conf_mat = confusion_matrix(all_v_gt, all_v_pred, normalize='true', labels=range(len(config['labels'])))
+-    v_acc = conf_mat.diagonal()/conf_mat.sum(axis=1)
+-    v_prec = precision_score(all_v_gt, all_v_pred, average=None, zero_division=1, labels=range(len(config['labels'])))
+-    v_rec = recall_score(all_v_gt, all_v_pred, average=None, zero_division=1, labels=range(len(config['labels'])))
+-    v_f1 = f1_score(all_v_gt, all_v_pred, average=None, zero_division=1, labels=range(len(config['labels'])))
++    if len(all_v_gt) > 0:
++        conf_mat = confusion_matrix(all_v_gt, all_v_pred, normalize='true', labels=range(len(config['labels'])))
++        v_acc = conf_mat.diagonal()/conf_mat.sum(axis=1)
++        v_prec = precision_score(all_v_gt, all_v_pred, average=None, zero_division=1, labels=range(len(config['labels'])))
++        v_rec = recall_score(all_v_gt, all_v_pred, average=None, zero_division=1, labels=range(len(config['labels'])))
++        v_f1 = f1_score(all_v_gt, all_v_pred, average=None, zero_division=1, labels=range(len(config['labels'])))
++    else:
++        conf_mat = None
++        v_acc = np.full(len(config['labels']), np.nan)
++        v_prec = np.full(len(config['labels']), np.nan)
++        v_rec = np.full(len(config['labels']), np.nan)
++        v_f1 = np.full(len(config['labels']), np.nan)
+ 
+     # print final results to terminal
+     block1 = '\nFINAL AVERAGED RESULTS:'
+@@ -139,22 +161,24 @@
+     block2  += '\n\t\tAvg. mAP {:>4.2f} (%) '.format(np.nanmean(all_v_mAP) * 100)
+     for tiou, tiou_mAP in zip(config['dataset']['tiou_thresholds'], all_v_mAP.T):
+         block2 += 'mAP@' + str(tiou) +  ' {:>4.2f} (%) '.format(np.nanmean(tiou_mAP)*100)
+-    block2  += '\n\t\tAcc {:>4.2f} (%)'.format(np.nanmean(v_acc) * 100)
+-    block2  += ' Prec {:>4.2f} (%)'.format(np.nanmean(v_prec) * 100)
+-    block2  += ' Rec {:>4.2f} (%)'.format(np.nanmean(v_rec) * 100)
+-    block2  += ' F1 {:>4.2f} (%)'.format(np.nanmean(v_f1) * 100)
++    if conf_mat is not None:
++        block2  += '\n\t\tAcc {:>4.2f} (%)'.format(np.nanmean(v_acc) * 100)
++        block2  += ' Prec {:>4.2f} (%)'.format(np.nanmean(v_prec) * 100)
++        block2  += ' Rec {:>4.2f} (%)'.format(np.nanmean(v_rec) * 100)
++        block2  += ' F1 {:>4.2f} (%)'.format(np.nanmean(v_f1) * 100)
+     
+     print('\n'.join([block1, block2]))
+ 
+     # save final raw confusion matrix
+-    _, ax = plt.subplots(figsize=(15, 15), layout="constrained")
+-    ax.set_title('Confusion Matrix Total (raw)')
+-    conf_disp = ConfusionMatrixDisplay(confusion_matrix=conf_mat, display_labels=config['labels']) 
+-    conf_disp.plot(ax=ax, xticks_rotation='vertical', colorbar=False)
+-    plt.savefig(os.path.join(log_dir, 'all_raw.png'))
+-    plt.close()
+-    if run is not None:
+-        run['conf_matrices'].append(File(os.path.join(log_dir, 'all_raw.png')), name='all')
++    if conf_mat is not None:
++        _, ax = plt.subplots(figsize=(15, 15), layout="constrained")
++        ax.set_title('Confusion Matrix Total (raw)')
++        conf_disp = ConfusionMatrixDisplay(confusion_matrix=conf_mat, display_labels=config['labels']) 
++        conf_disp.plot(ax=ax, xticks_rotation='vertical', colorbar=False)
++        plt.savefig(os.path.join(log_dir, 'all_raw.png'))
++        plt.close()
++        if run is not None:
++            run['conf_matrices'].append(File(os.path.join(log_dir, 'all_raw.png')), name='all')
+ 
+     # submit final values to neptune 
+     if run is not None:
+--- a/inertial_baseline/train.py
++++ b/inertial_baseline/train.py
+@@ -14,12 +14,23 @@
+ from torch.utils.data import DataLoader
+ import torch.nn as nn
+ 
++import importlib.util
++
+ from utils.data_utils import convert_samples_to_segments, unwindow_inertial_data
+ from utils.torch_utils import init_weights, save_checkpoint, worker_init_reset_seed, InertialDataset
+ from utils.os_utils import mkdir_if_missing
+ from inertial_baseline.AttendAndDiscriminate import AttendAndDiscriminate
+ from inertial_baseline.DeepConvLSTM import DeepConvLSTM
+-from camera_baseline.actionformer.libs.utils.metrics import ANETdetection
++
++# Load ANETdetection without importing actionformer/tridet utils.__init__ (avoids nms_1d_cpu).
++_metrics_path = os.path.join(
++    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
++    'camera_baseline', 'actionformer', 'libs', 'utils', 'metrics.py',
++)
++_spec = importlib.util.spec_from_file_location('wear_anet_metrics', _metrics_path)
++_metrics_mod = importlib.util.module_from_spec(_spec)
++_spec.loader.exec_module(_metrics_mod)
++ANETdetection = _metrics_mod.ANETdetection
+ 
+ 
+ def run_inertial_network(train_sbjs, val_sbjs, cfg, ckpt_folder, ckpt_freq, resume, rng_generator, run, val_freq):
+@@ -159,6 +170,17 @@
+             block2 = 'TRAINING:\tavg. loss {:.2f}'.format(np.nanmean(t_losses))  
+             print('\n'.join([block1, block2]))
+ 
++    # Always keep a final checkpoint for frame export / fusion (mirrors TriDet).
++    save_states = {
++        'epoch': cfg['train_cfg']['epochs'],
++        'state_dict': net.state_dict(),
++        'optimizer': opt.state_dict(),
++    }
++    final_ckpt = os.path.join(ckpt_folder, 'ckpts', f'final_{split_name}.pth.tar')
++    save_checkpoint(save_states, False, file_folder=os.path.join(ckpt_folder, 'ckpts'),
++                    file_name=f'final_{split_name}.pth.tar')
++    print(f'Saved final checkpoint: {final_ckpt}')
++
+     return t_losses, v_losses, v_mAP, v_preds, v_gt
+ 
+ 
+--- a/camera_baseline/tridet/main.py
++++ b/camera_baseline/tridet/main.py
+@@ -36,16 +36,21 @@
+     train_dataset = make_dataset(cfg['dataset_name'], True, cfg['train_split'], **cfg['dataset'])
+     val_dataset = make_dataset(cfg['dataset_name'], False, cfg['val_split'], **cfg['dataset'])
+     
+-    # validation sensor data loading
+-    val_sens_data = None    
++    # validation sensor data loading (optional; mAP still computed from segment predictions)
++    val_sens_data = None
+     for sbj in val_sbjs:
+-        sbj_data = pd.read_csv(os.path.join(cfg['dataset']['sens_folder'], sbj + '.csv'), index_col=False).replace({"label": cfg['label_dict']}).fillna(0)
++        csv_path = os.path.join(cfg['dataset']['sens_folder'], sbj + '.csv')
++        if not os.path.isfile(csv_path):
++            val_sens_data = None
++            break
++        sbj_data = pd.read_csv(csv_path, index_col=False).replace({"label": cfg['label_dict']}).fillna(0)
+         if val_sens_data is None:
+             val_sens_data = sbj_data
+         else:
+             val_sens_data = pd.concat((val_sens_data, sbj_data))
+ 
+-    val_sens_data = val_sens_data.to_numpy()
++    if val_sens_data is not None:
++        val_sens_data = val_sens_data.to_numpy()
+     
+     # update cfg based on dataset attributes (fix to epic-kitchens)
+     train_db_vars = train_dataset.get_attributes()
+@@ -111,7 +116,10 @@
+         det_eval = ANETdetection(val_dataset.json_anno, val_dataset.split[0], tiou_thresholds = val_db_vars['tiou_thresholds'])
+         
+         v_loss, v_segments = valid_one_epoch(val_loader, model)
+-        v_preds, v_gt, _ = convert_segments_to_samples(v_segments, val_sens_data, cfg['dataset']['sampling_rate'])
++        if val_sens_data is not None:
++            v_preds, v_gt, _ = convert_segments_to_samples(v_segments, val_sens_data, cfg['dataset']['sampling_rate'])
++        else:
++            v_preds, v_gt = np.array([]), np.array([])
+         
+         if ((epoch + 1) == max_epochs):
+             # save raw results (for later postprocessing)
+@@ -128,11 +136,17 @@
+             v_results.to_csv(os.path.join(ckpt_folder, 'unprocessed_results', 'v_seg_' + split_name + '.csv'), index=False)
+ 
+         val_mAP, _ = det_eval.evaluate(v_segments)
+-        conf_mat = confusion_matrix(v_gt, v_preds, normalize='true', labels=range(len(cfg['labels'])))
+-        v_acc = conf_mat.diagonal()/conf_mat.sum(axis=1)
+-        v_prec = precision_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(cfg['labels'])))
+-        v_rec = recall_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(cfg['labels'])))
+-        v_f1 = f1_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(cfg['labels'])))
++        if len(v_gt) > 0:
++            conf_mat = confusion_matrix(v_gt, v_preds, normalize='true', labels=range(len(cfg['labels'])))
++            v_acc = conf_mat.diagonal()/conf_mat.sum(axis=1)
++            v_prec = precision_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(cfg['labels'])))
++            v_rec = recall_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(cfg['labels'])))
++            v_f1 = f1_score(v_gt, v_preds, average=None, zero_division=1, labels=range(len(cfg['labels'])))
++        else:
++            v_acc = np.full(len(cfg['labels']), np.nan)
++            v_prec = np.full(len(cfg['labels']), np.nan)
++            v_rec = np.full(len(cfg['labels']), np.nan)
++            v_f1 = np.full(len(cfg['labels']), np.nan)
+         
+         # print to terminal
+         block1 = 'Epoch: [{:03d}/{:03d}]'.format(epoch, max_epochs)
+@@ -143,12 +157,16 @@
+         for tiou, tiou_mAP in zip(cfg['dataset']['tiou_thresholds'], val_mAP):
+                 block4 += 'mAP@' + str(tiou) +  ' {:>4.2f} (%) '.format(tiou_mAP*100)
+         block5 = ''
+-        block5  += '\t\tAcc {:>4.2f} (%)'.format(np.nanmean(v_acc) * 100)
+-        block5  += ' Prec {:>4.2f} (%)'.format(np.nanmean(v_prec) * 100)
+-        block5  += ' Rec {:>4.2f} (%)'.format(np.nanmean(v_rec) * 100)
+-        block5  += ' F1 {:>4.2f} (%)'.format(np.nanmean(v_f1) * 100)
++        if len(v_gt) > 0:
++            block5  += '\t\tAcc {:>4.2f} (%)'.format(np.nanmean(v_acc) * 100)
++            block5  += ' Prec {:>4.2f} (%)'.format(np.nanmean(v_prec) * 100)
++            block5  += ' Rec {:>4.2f} (%)'.format(np.nanmean(v_rec) * 100)
++            block5  += ' F1 {:>4.2f} (%)'.format(np.nanmean(v_f1) * 100)
+         
+-        print('\n'.join([block1, block2, block3, block4, block5]))
++        blocks = [block1, block2, block3, block4]
++        if block5:
++            blocks.append(block5)
++        print('\n'.join(blocks))
+         t_losses = np.append(t_losses, t_loss)
+         v_losses = np.append(v_losses, v_loss)
+ 
+@@ -156,5 +174,17 @@
+             run[split_name].append({"train_loss": t_loss, "val_loss": v_loss, "accuracy": np.nanmean(v_acc), "precision": np.nanmean(v_prec), "recall": np.nanmean(v_rec), 'f1': np.mean(v_f1), 'mAP': np.mean(val_mAP)}, step=epoch)
+             for tiou, tiou_mAP in zip(cfg['dataset']['tiou_thresholds'], val_mAP):
+                     run[split_name].append({'mAP@' + str(tiou): tiou_mAP}, step=epoch)
+-                    
++
++    # save final weights for downstream late-fusion / inference
++    final_ckpt = os.path.join(ckpt_folder, 'ckpts', f'final_{split_name}.pth.tar')
++    mkdir_if_missing(os.path.join(ckpt_folder, 'ckpts'))
++    save_states = {
++        'epoch': max_epochs,
++        'state_dict': model.state_dict(),
++        'state_dict_ema': model_ema.module.state_dict(),
++    }
++    save_checkpoint(save_states, False, file_folder=os.path.join(ckpt_folder, 'ckpts'),
++                    file_name=f'final_{split_name}.pth.tar')
++    print(f'Saved final checkpoint: {final_ckpt}')
++
+     return t_losses, v_losses, val_mAP, v_preds, v_gt 

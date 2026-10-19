@@ -1,0 +1,143 @@
+{
+  "protocol": "same trigger k=4 entropy>0.05 or mean maxp<0.90; 18-class activity-frame P/R/F1; 54 LOSO",
+  "bf1": {
+    "d_windows": {
+      "mean": 61.55,
+      "std": 11.42
+    },
+    "d_activity": {
+      "mean": 41.96,
+      "std": 16.57
+    },
+    "uncertain_windows": {
+      "mean": 51.37,
+      "std": 10.35
+    },
+    "imu_F1": {
+      "mean": 76.56,
+      "std": 16.31
+    },
+    "cam_F1": {
+      "mean": 75.41,
+      "std": 10.79
+    },
+    "always_on_F1": {
+      "mean": 77.58,
+      "std": 15.6
+    },
+    "dynamic_F1": {
+      "mean": 77.5,
+      "std": 15.58
+    },
+    "retention_F1": {
+      "mean": 1.0,
+      "std": 0.0
+    },
+    "lift_F1": {
+      "mean": 0.94,
+      "std": 1.02
+    },
+    "imu_P": {
+      "mean": 84.63,
+      "std": 14.77
+    },
+    "imu_R": {
+      "mean": 77.33,
+      "std": 14.93
+    },
+    "cam_P": {
+      "mean": 79.25,
+      "std": 10.2
+    },
+    "cam_R": {
+      "mean": 77.64,
+      "std": 9.75
+    },
+    "always_on_P": {
+      "mean": 87.57,
+      "std": 11.62
+    },
+    "always_on_R": {
+      "mean": 78.13,
+      "std": 14.47
+    },
+    "dynamic_P": {
+      "mean": 87.55,
+      "std": 11.62
+    },
+    "dynamic_R": {
+      "mean": 78.03,
+      "std": 14.45
+    }
+  },
+  "bf2": {
+    "d_windows": {
+      "mean": 69.56,
+      "std": 8.16
+    },
+    "d_activity": {
+      "mean": 60.29,
+      "std": 11.89
+    },
+    "uncertain_windows": {
+      "mean": 56.8,
+      "std": 8.01
+    },
+    "imu_F1": {
+      "mean": 76.45,
+      "std": 21.1
+    },
+    "cam_F1": {
+      "mean": 75.41,
+      "std": 10.79
+    },
+    "always_on_F1": {
+      "mean": 85.05,
+      "std": 9.5
+    },
+    "dynamic_F1": {
+      "mean": 85.16,
+      "std": 8.96
+    },
+    "retention_F1": {
+      "mean": 1.0,
+      "std": 0.02
+    },
+    "lift_F1": {
+      "mean": 8.71,
+      "std": 14.56
+    },
+    "imu_P": {
+      "mean": 79.74,
+      "std": 21.11
+    },
+    "imu_R": {
+      "mean": 78.15,
+      "std": 19.3
+    },
+    "cam_P": {
+      "mean": 79.25,
+      "std": 10.2
+    },
+    "cam_R": {
+      "mean": 77.64,
+      "std": 9.75
+    },
+    "always_on_P": {
+      "mean": 87.35,
+      "std": 9.05
+    },
+    "always_on_R": {
+      "mean": 86.79,
+      "std": 8.27
+    },
+    "dynamic_P": {
+      "mean": 87.55,
+      "std": 8.7
+    },
+    "dynamic_R": {
+      "mean": 86.79,
+      "std": 7.79
+    }
+  }
+}
