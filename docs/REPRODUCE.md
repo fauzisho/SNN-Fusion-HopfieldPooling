@@ -35,8 +35,7 @@ mkdir -p cluster && cp ../../sima/wear_patches/run_*_split.py cluster/
 cd camera_baseline/tridet/libs/utils && python setup.py build_ext --inplace   # TriDet NMS
 ```
 
-**Event data.** The converted DVS128 clips (18 subjects, 16.5 GB, subjects 16/17 in
-their complete re-conversion) are public: [download page](https://thesiswearsnn.nbg1.your-objectstorage.com/n-wear-events-dvs128/index.html), or
+**Event data.** The converted DVS128 clips (18 subjects, 16.5 GB) are public: [download page](https://thesiswearsnn.nbg1.your-objectstorage.com/n-wear-events-dvs128/index.html), or
 
 ```bash
 bash data_preparation/download_events.sh          # into $NWEAR_DATA, verifies SHA-256
@@ -88,9 +87,8 @@ bash pipeline/08_aggregate.sh                                        # after all
 Without Slurm: `bash pipeline/02_train_event_snn.sh 1 0` and loop over seeds 1-3 and
 subjects 0-17.
 
-Expect small differences from the paper: the event data of subjects 16/17 and the clip
-boundaries differ from the original conversion (see `KNOWN_ISSUES.md`, items 1 and 7),
-and GPU non-determinism affects every training run.
+Expect small differences from the paper, since GPU non-determinism affects every
+training run.
 
 ## Where each paper number comes from
 

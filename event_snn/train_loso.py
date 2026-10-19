@@ -10,7 +10,7 @@ Defaults reproduce the 54 paper runs (subjects 0-17 x seeds 1-3); pass
         --cache-dir "$NWEAR_OUTPUT/event_snn/tensor_cache"
 
 Note: with --val-on-held-out the "val" set is the held-out subject, and model.pt is
-the epoch with the best accuracy on it (see docs/KNOWN_ISSUES.md).
+the epoch with the best accuracy on it.
 """
 
 from __future__ import annotations

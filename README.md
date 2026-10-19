@@ -16,45 +16,13 @@ Correspondence: `fauzisholichin@gmail.com`
 <p align="center"><em>Left: RGB clips of the 18 activities from the <a href="https://mariusbock.github.io/wear/">WEAR</a> dataset.
 Right: the corresponding event streams, converted with <a href="https://github.com/SensorsINI/v2e">v2e</a>.</em></p>
 
-## Abstract
-
-Head-worn devices must recognise what their wearer is doing, yet running a frame
-camera and a video network continuously exceeds the energy budget of a battery-powered
-headset. We study a fully spiking alternative on WEAR, an egocentric benchmark that
-pairs head-mounted video with four-limb inertial data. The video is converted into a
-128×128 event stream with v2e, and two directly trained spiking encoders, a
-convolutional adaptive-LIF network with an event-based GRU for events and an
-event-based GRU for inertial data, are fused late by two deployable Hopfield-pooling
-heads: a single head that pools the two modality tokens of one window, and a double
-head that first pools time within each modality and then pools across modalities. All
-models are scored over 54 leave-one-subject-out runs on two window sets, native and
-event-aligned, each with and without the 10 s majority vote of the WEAR protocol. On
-the shared 45,243 aligned windows the spiking pipeline matches the best conventional
-RGB–inertial fusion (83.07 vs. 82.32 % macro F1 without the vote, 85.09 vs.
-85.16 % with it). The vote changes which fusion head ranks first: double Hopfield
-pooling leads without it, but with it the three spiking heads lie within 1.5 F1 points,
-because the vote supplies the temporal context that the double head learns. Energy is
-estimated with NeuroBench, extended to the operators it does not count. With sensors
-included, the event pipeline needs 37–93× less energy per window than camera,
-I3D and TriDet; the fusion head is 0.11 % of the spiking pipeline, and an IMU-gated
-schedule skips 18 % of the event branch at a retention of 0.997–1.000.
-
-## Status
-
-Code release accompanying the paper (NICE 2027). The repository contains the full
-pipeline (event conversion, both spiking encoders, the SIM A baselines, all fusion
-heads, evaluation, energy accounting and the IMU-gated schedule) and the per-fold
-results behind every table. The converted event data is available from the
-[N-WEAR download page](https://thesiswearsnn.nbg1.your-objectstorage.com/n-wear-events-dvs128/index.html); checkpoints will be released separately. Read [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) before re-running or
-extending the experiments.
-
 ## Contributions
 
 1. **An event-based version of WEAR.** The egocentric video is converted into
    DVS 128×128 events with v2e, synchronised with the inertial stream, and used to train
    a spiking event encoder and a spiking inertial encoder under the 54-run
    leave-one-subject-out protocol of WEAR.
-2. **Two deployable late-fusion heads based on modern Hopfield pooling.** *Single*
+2. **Two deployable late-fusion heads based on [modern Hopfield pooling](https://arxiv.org/abs/2008.02217).** *Single*
    Hopfield pooling across the two modality tokens of one window, and *double* Hopfield
    pooling, which pools a temporal context within each modality before pooling across
    modalities. Both run on conventional (RGB–inertial) and spiking front ends.
@@ -89,11 +57,11 @@ four accelerometers on wrists and ankles at 50 Hz. All models use a 2 s window.
 
 - **SIM A (conventional).** The published WEAR features: two-stream I3D embeddings
   (2048-D per window) and the 12-axis inertial windows. Camera TriDet, inertial TriDet
-  and Attend-and-Discriminate (A&D) are retrained on our folds and emit per-frame
+  and [Attend-and-Discriminate](https://doi.org/10.1145/3448083) (A&D) are retrained on our folds and emit per-frame
   (50 Hz) labels and scores. Two pairings are fused: **BF1** = A&D + camera TriDet and
   **BF2** = inertial TriDet + camera TriDet.
 - **SIM B (spiking).** Each annotated activity segment of the video is cut into 2 s
-  chunks, letterboxed to 128×128, temporally upsampled with Super SloMo until
+  chunks, letterboxed to 128×128, temporally upsampled with [Super SloMo](https://arxiv.org/abs/1712.00080) until
   interframe motion is below one pixel, and converted with v2e under its
   bright-illumination model with a nominal contrast threshold of 0.2. This yields
   15,100 clips over 557 activity segments, about 0.26 M events per clip. Events are
@@ -126,13 +94,15 @@ spiking front end.
 
 - **Score-pick** adopts, per window, the prediction of the more confident modality. It
   is untrained and is the lower bound a learned head must beat.
-- **Hopfield pooling** retrieves, for a set of tokens **Y**,
+- **[Hopfield pooling](https://arxiv.org/abs/2008.02217)** retrieves, for a set of tokens **Y**,
   `HP(Y) = softmax(β · q (Y W_K)ᵀ) Y W_V`, with a learned query **q**, one head and
   β = 0.1, iterated up to three times.
 - **Single Hopfield pooling** projects the two modality features of one instant to
   d = 64, pools them as N = 2 tokens and maps the pooled vector to 18 logits. It has no
   temporal context.
-- **Double Hopfield pooling** pools each modality's sequence over time (a
+- **Double Hopfield pooling** restores the two pooling levels of
+  [Perceiver Hopfield pooling](https://doi.org/10.1007/978-3-031-15919-0_50), with time
+  taking the role of the instances: it pools each modality's sequence over time (a
   linear–LayerNorm–ReLU stem to d = 128, then HP<sub>time</sub>), pools the two
   modality summaries with HP<sub>fus</sub>, and classifies with LayerNorm + linear.
   On SIM A the context is W = 100 frame-level score vectors (2 s at 50 Hz); on SIM B it
@@ -326,7 +296,7 @@ pipeline/           one script per stage (per fold or as a Slurm array)
 cluster/            generic Slurm wrapper (optionally inside the Singularity image)
 environment/        requirements.txt and the Singularity definition used for the paper
 results/            per-fold CSV / JSON behind Tables I, II and IV
-docs/               REPRODUCE.md, KNOWN_ISSUES.md, CONTINUING_RESEARCH.md
+docs/               REPRODUCE.md, CONTINUING_RESEARCH.md
 ```
 
 ## Data
@@ -339,8 +309,7 @@ docs/               REPRODUCE.md, KNOWN_ISSUES.md, CONTINUING_RESEARCH.md
 ## Continuing this work
 
 [docs/CONTINUING_RESEARCH.md](docs/CONTINUING_RESEARCH.md) explains how the stages fit
-together, what to consider before new experiments (event data of subjects 16/17, the IMU input layout, encoder
-model selection) and the open directions: physical DVS, neuromorphic hardware, a spiking
+together, how to add a new head or encoder, and the open directions: physical DVS, neuromorphic hardware, a spiking
 fusion head, a cheaper event encoder and better gating.
 
 ## Citation
@@ -361,8 +330,11 @@ This work builds on [WEAR](https://mariusbock.github.io/wear/),
 [v2e](https://github.com/SensorsINI/v2e),
 [SpikingJelly](https://github.com/fangwei123456/spikingjelly),
 [NeuroBench](https://github.com/NeuroBench/neurobench),
-[TriDet](https://github.com/dingfengshi/TriDet), Attend-and-Discriminate,
-Super SloMo, and modern Hopfield networks / Perceiver Hopfield pooling.
+[TriDet](https://github.com/dingfengshi/TriDet),
+[Attend-and-Discriminate](https://doi.org/10.1145/3448083) (Abedin et al., IMWUT 2021),
+[Super SloMo](https://arxiv.org/abs/1712.00080) (Jiang et al., CVPR 2018),
+[modern Hopfield networks](https://arxiv.org/abs/2008.02217) (Ramsauer et al., ICLR 2021) and
+[Perceiver Hopfield pooling](https://doi.org/10.1007/978-3-031-15919-0_50) (Rößle et al., ICANN 2022).
 
 ## License
 
